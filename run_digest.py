@@ -38,13 +38,13 @@ def main():
     # Create output directory
     config.output_dir.mkdir(exist_ok=True)
     
-    # Setup logging
+    # Setup logging - reset log file on each run
     log_format = '%(asctime)s - %(levelname)s - %(message)s'
     logging.basicConfig(
         level=logging.INFO,
         format=log_format,
         handlers=[
-            logging.FileHandler(config.output_dir / "gitdigest.log"),
+            logging.FileHandler(config.output_dir / "gitdigest.log", mode='w'),  # 'w' mode overwrites
             logging.StreamHandler(sys.stdout)
         ]
     )

@@ -6,15 +6,14 @@
     <string>com.gitdigest.daily</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/python3</string>
-        <string>/path/to/GitDigest/run_digest.py</string>
+        <string>/bin/bash</string>
+        <string>-c</string>
+        <string>source ~/.bashrc && cd /path/to/GitDigest && python3 run_digest.py</string>
     </array>
-    <key>WorkingDirectory</key>
-    <string>/path/to/GitDigest</string>
     <key>EnvironmentVariables</key>
     <dict>
-        <key>GITHUB_TOKEN</key>
-        <string>your_token_here</string>
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin</string>
     </dict>
     <key>StartCalendarInterval</key>
     <dict>
