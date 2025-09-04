@@ -1,0 +1,29 @@
+{
+  "team_members": [
+    "github_user1",
+    "github_user2", 
+    "github_user3",
+    "github_user4"
+  ],
+  "repositories": [
+    "your_org/repo1",
+    "your_org/repo2",
+    "your_org/repo3"
+  ],
+  "settings": {
+    "activity_days": 7,
+    "recent_merge_days": 2,
+    "max_comment_length": 500,
+    "max_key_files": 5
+  },
+  "output": {
+    "directory": "output",
+    "data_filename_template": "team-data-{date}.json",
+    "digest_filename_template": "team-digest-{date}.md"
+  },
+  "github": {
+    "api_delay_seconds": 0.05,
+    "max_retries": 3,
+    "per_page": 100
+  }
+}
