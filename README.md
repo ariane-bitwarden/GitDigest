@@ -1,6 +1,6 @@
 # GitDigest - GitHub Activity Data Collection & Analysis
 
-A secure, production-ready tool that collects GitHub activity data for your development team and automatically generates daily summaries with engineering manager insights.
+A tool that collects GitHub activity data for your development team and automatically generates daily summaries with engineering insights.
 
 ## 🚀 Quick Start
 
