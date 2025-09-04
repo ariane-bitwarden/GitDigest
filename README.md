@@ -48,7 +48,8 @@ Example config.json:
   "repositories": ["myorg/backend", "myorg/frontend"],
   "settings": {
     "activity_days": 7,
-    "recent_merge_days": 2
+    "recent_merge_days": 2,
+    "digest_type": "manager"
   }
 }
 ```
@@ -79,15 +80,26 @@ For each repository, GitDigest finds PRs where team members are involved as:
 - **Daily digest**: `output/team-digest-YYYY-MM-DD.md`
 - **Logs**: `output/gitdigest.log`
 
-## 📊 Engineering Manager Insights
+## 📊 Digest Types
 
-The tool generates a comprehensive daily digest with:
+GitDigest generates different digest formats based on your role:
 
+### 👔 Manager Digest (`"digest_type": "manager"`)
 - **Executive Summary** - Team velocity, review health, workload overview
 - **🚨 Immediate Intervention Needed** - Critical PRs, communication issues
 - **⚠️ Monitoring Situations** - Large PRs, team workload, approaching deadlines  
 - **🎯 Key Manager Actions** - Specific recommendations for process and team management
 - **📋 Detailed PR Status** - Complete team activity and recent completions
+
+### 👨‍💻 Engineer Digest (`"digest_type": "engineer"`)
+- **At a Glance** - Quick PR counts and status overview
+- **🔥 High Priority** - Critical/urgent items needing immediate action
+- **👀 Ready for Review** - PRs waiting for team reviews
+- **⚠️ Needs Attention** - Large PRs, getting stale, follow-up needed
+- **✅ Recently Shipped** - What just merged
+- **📊 By Repository** - Engineering-focused repo breakdown
+
+Configure the digest type in your `config.json` settings.
 
 ## 🔒 Security Features
 
@@ -97,17 +109,19 @@ The tool generates a comprehensive daily digest with:
 - No sensitive data logged
 - Token permissions validated before execution
 
-## 📅 Daily Automation
+## 📅 Daily Automation (macOS)
 
-### macOS (LaunchAgent)
+### LaunchAgent Setup
 
-1. Copy the plist file:
+1. Add your GitHub token to your shell profile:
    ```bash
-   cp automation/com.gitdigest.daily.plist ~/Library/LaunchAgents/
+   echo 'export GITHUB_TOKEN=your_token_here' >> ~/.bashrc
    ```
 
-2. Edit the file paths and GitHub token:
+2. Copy and configure the plist file:
    ```bash
+   cp automation/com.gitdigest.daily.plist ~/Library/LaunchAgents/
+   # Edit the file paths in the plist to match your GitDigest location
    nano ~/Library/LaunchAgents/com.gitdigest.daily.plist
    ```
 
@@ -116,38 +130,7 @@ The tool generates a comprehensive daily digest with:
    launchctl load ~/Library/LaunchAgents/com.gitdigest.daily.plist
    ```
 
-### Linux (systemd)
-
-1. Copy service files:
-   ```bash
-   sudo cp automation/gitdigest.service /etc/systemd/system/
-   sudo cp automation/gitdigest.timer /etc/systemd/system/
-   ```
-
-2. Edit the service file with correct paths:
-   ```bash
-   sudo nano /etc/systemd/system/gitdigest.service
-   ```
-
-3. Enable and start:
-   ```bash
-   sudo systemctl enable gitdigest.timer
-   sudo systemctl start gitdigest.timer
-   ```
-
-### Windows (Task Scheduler)
-
-1. Open Task Scheduler
-2. Import the XML file: `automation/windows_task.xml`
-3. Edit the task to update paths and add your GitHub token
-4. Enable the task
-
-### Cron (Unix/Linux/macOS)
-
-Add to your crontab (`crontab -e`):
-```bash
-0 9 * * * cd /path/to/GitDigest && /usr/bin/python3 run_digest.py >> output/cron.log 2>&1
-```
+The digest will run daily at 9:00 AM and pull the GitHub token from your `~/.bashrc`.
 
 ## 🛠️ Troubleshooting
 
@@ -162,14 +145,15 @@ Add to your crontab (`crontab -e`):
 - Tool automatically waits for rate limit reset
 - Consider running during off-peak hours
 
-**"Claude Code not found"**
-- Install Claude Code CLI
-- Tool will still collect data without Claude
-
 **"No data collected"**
 - Check team member usernames in config
 - Verify repositories exist and are accessible
 - Review date ranges in configuration
+
+**"LaunchAgent not running"**
+- Check if loaded: `launchctl list | grep gitdigest`
+- View logs: `tail -f ~/Library/Logs/com.gitdigest.daily.log`
+- Verify file paths in plist are correct
 
 ### Logs
 Check `output/gitdigest.log` for detailed error information.

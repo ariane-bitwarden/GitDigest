@@ -14,7 +14,8 @@
     "activity_days": 7,
     "recent_merge_days": 2,
     "max_comment_length": 500,
-    "max_key_files": 5
+    "max_key_files": 5,
+    "digest_type": "manager"
   },
   "output": {
     "directory": "output",

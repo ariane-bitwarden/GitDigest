@@ -28,6 +28,7 @@ class Config:
     output_dir: Path = None
     max_comment_length: int = 500
     max_key_files: int = 5
+    digest_type: str = "manager"
     api_delay: float = 0.1
     max_retries: int = 3
     per_page: int = 100
@@ -85,6 +86,7 @@ class Config:
             recent_merge_days=settings.get("recent_merge_days", 2),
             max_comment_length=settings.get("max_comment_length", 500),
             max_key_files=settings.get("max_key_files", 5),
+            digest_type=settings.get("digest_type", "manager"),
             github_token=os.getenv("GITHUB_TOKEN"),
             output_dir=Path(__file__).parent / output_config.get("directory", "output"),
             api_delay=github_config.get("api_delay_seconds", 0.1),

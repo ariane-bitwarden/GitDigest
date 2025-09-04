@@ -70,14 +70,21 @@ def main():
         print(f"✅ Data collection complete: {data_file}")
         print(f"📊 Found {data['summary_stats']['total_active_prs']} relevant PRs")
         
-        # Generate digest using manual generator (reliable and fast)
-        print("📝 Generating digest...")
+        # Generate digest using appropriate generator based on config
+        digest_type = config.digest_type
+        print(f"📝 Generating {digest_type} digest...")
+        
+        if digest_type == "engineer":
+            digest_generator = Path(__file__).parent / "engineer_digest.py"
+        else:  # default to manager
+            digest_generator = Path(__file__).parent / "manual_digest.py"
+        
         import subprocess
         try:
             result = subprocess.run([
-                sys.executable, Path(__file__).parent / "manual_digest.py", 
+                sys.executable, str(digest_generator),
                 str(data_file), str(digest_file)
-            ], capture_output=True, text=True, timeout=60)  # 60 second timeout for manual generation
+            ], capture_output=True, text=True, timeout=60)  # 60 second timeout for digest generation
         except subprocess.TimeoutExpired:
             print("❌ Digest generation timed out")
             result = None
