@@ -77,7 +77,7 @@ def main():
         if digest_type == "engineer":
             digest_generator = Path(__file__).parent / "engineer_digest.py"
         else:  # default to manager
-            digest_generator = Path(__file__).parent / "manual_digest.py"
+            digest_generator = Path(__file__).parent / "manager_digest.py"
         
         import subprocess
         try:
@@ -93,6 +93,21 @@ def main():
         if result and result.returncode == 0:
             print(f"✅ Digest generated: {digest_file}")
             digest_generated = True
+            
+            # If this is a manager digest, try to add a Claude analysis
+            if digest_type == "manager":
+                print("🤖 Adding Claude analysis...")
+                try:
+                    analyzer = ClaudeAnalyzer(data_file, digest_file)
+                    success = analyzer.generate_digest()
+                    
+                    if success:
+                        print("✅ Claude analysis added")
+                    else:
+                        print("⚠️ Claude analysis failed, continuing without it")
+                        
+                except Exception as e:
+                    print(f"⚠️ Claude analysis error: {e}")
         else:
             error_msg = result.stderr if result else "Process timed out"
             print(f"❌ Digest generation failed: {error_msg}")

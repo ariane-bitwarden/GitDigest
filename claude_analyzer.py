@@ -24,118 +24,51 @@ class ClaudeAnalyzer:
             with open(self.data_file, 'r') as f:
                 data = json.load(f)
             
-            # Create a detailed prompt for Claude
-            prompt = self._create_analysis_prompt(data)
+            # Create the prompt with the JSON data embedded
+            prompt = self._create_manager_analysis_prompt(data)
+            full_prompt = f"{prompt}\n\nAnalyze this data:\n{json.dumps(data, indent=2)}"
             
-            # Create a temporary prompt file
-            prompt_file = self.data_file.parent / "analysis_prompt.txt"
-            with open(prompt_file, 'w') as f:
-                f.write(prompt)
-            
-            # Run Claude Code - try different approaches
-            commands_to_try = [
-                # Modern Claude Code syntax
-                ["claude", "code", f"Please analyze {self.data_file} using the prompt in {prompt_file} and save to {self.output_file}"],
-                # Alternative approach
-                ["claude", f"Analyze the GitHub data in {self.data_file} and create a digest at {self.output_file}"],
-            ]
-            
-            for cmd in commands_to_try:
-                try:
-                    result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)  # 30 second timeout
-                    if result.returncode == 0:
-                        logging.info("Claude analysis completed successfully")
-                        # Clean up
-                        if prompt_file.exists():
-                            prompt_file.unlink()
-                        return True
-                except subprocess.TimeoutExpired:
-                    logging.warning(f"Claude command timed out: {' '.join(cmd)}")
-                    continue
-            
-            # If all commands failed
-            logging.error(f"All Claude commands failed. Last error: {result.stderr}")
-            
-            # Clean up
-            if prompt_file.exists():
-                prompt_file.unlink()
-            return False
+            try:
+                # Use Popen with stdin/pipe interface
+                process = subprocess.Popen(
+                    ['claude'],
+                    stdin=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    text=True
+                )
+                
+                stdout, stderr = process.communicate(input=full_prompt, timeout=60)  # 1 minute timeout
+                
+                if process.returncode == 0 and stdout.strip():
+                    # Write Claude's output to the digest file
+                    with open(self.output_file, 'a') as f:
+                        f.write(f"\n\n## 🧠 AI Insight\n{stdout.strip()}\n")
+                    
+                    logging.info("Claude analysis completed successfully")
+                    return True
+                else:
+                    logging.error(f"Claude command failed. Return code: {process.returncode}, Error: {stderr}")
+                    return False
+                    
+            except subprocess.TimeoutExpired:
+                logging.warning("Claude command timed out")
+                process.kill()
+                return False
                 
         except Exception as e:
             logging.error(f"Failed to generate digest: {e}")
             return False
     
-    def _create_analysis_prompt(self, data: Dict[Any, Any]) -> str:
-        """Create a detailed prompt for Claude analysis"""
-        stats = data.get('summary_stats', {})
-        team_members = data.get('team_members', [])
-        
-        return f"""
-Analyze this GitHub PR data for the Vault team and create a comprehensive daily digest.
-
-**Context:**
-- Team has {len(team_members)} members: {', '.join(team_members)}
-- Data covers {len(data.get('repositories', []))} repositories
-- Found {stats.get('total_active_prs', 0)} active PRs with team involvement
-
-**Required Output Format (Markdown):**
-
-# Vault Team Daily Digest - {data.get('generated_at', '').split('T')[0]}
-
-## 🎯 Executive Summary
-- **Active PRs:** {stats.get('total_active_prs', 0)} total
-- **Team Authored:** {stats.get('team_authored_prs', 0)} 
-- **Needs Review:** [count PRs waiting for reviews]
-- **Stale Items:** {stats.get('stale_prs', 0)} PRs with >7 days no activity
-- **Recent Merges:** {stats.get('merged_prs', 0)} PRs merged recently
-
-## 🚨 Action Items
-[List PRs that need immediate attention - reviews, approvals, or are blocked]
-
-## 📋 Active Pull Requests by Priority
-
-### High Priority (Blocking/Critical)
-[PRs with "priority-high" or "critical" labels, or blocking labels]
-
-### Ready for Review
-[Open PRs authored by team members that need reviews]
-
-### In Review
-[PRs currently being reviewed by team members]
-
-### Waiting on Author
-[PRs where team members requested changes]
-
-## 👥 Team Activity Summary
-
-### [For each team member who has activity]
-**[Member Name]:**
-- Authored: [list of PRs they authored]
-- Reviewed: [PRs they reviewed] 
-- Comments: [PRs they commented on]
-
-## ⚠️ Stale Items Needing Attention
-[PRs with >7 days no activity, what's blocking them]
-
-## ✅ Recent Completions
-[Recently merged PRs with brief description of what was accomplished]
-
-## 📊 Repository Breakdown
-[Brief stats per repository]
-
-**Analysis Instructions:**
-1. Focus on actionable insights
-2. Highlight blockers and bottlenecks
-3. Use emoji indicators for visual clarity
-4. Group similar items together
-5. Include PR numbers and links where relevant
-6. Identify patterns (e.g., many PRs waiting on specific reviewer)
-7. Calculate metrics like average days to merge, review turnaround time
-8. Flag any concerning trends (e.g., increasing stale PR count)
-
-Make the digest scannable and immediately useful for standup meetings.
-"""
-
+    def _create_manager_analysis_prompt(self, data: Dict[Any, Any]) -> str:
+        prompt = f"""I am an engineering manager. Can you read the data and give me a summary of what would be important for me to help with?
+        Most important to me:
+        - Inconsistent review participation across team
+        - Lack of clear PR descriptions or context
+        - Unproductive disagreements in reviews
+        - Team member struggling with a specific concept
+        Always include the PR numbers and links where relevant."""
+        return prompt
 
 def main():
     """Standalone analyzer for testing"""
