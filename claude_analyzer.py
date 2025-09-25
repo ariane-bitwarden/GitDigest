@@ -13,9 +13,10 @@ from typing import Dict, Any
 class ClaudeAnalyzer:
     """Handle Claude Code integration for digest generation"""
     
-    def __init__(self, data_file: Path, output_file: Path):
+    def __init__(self, data_file: Path, output_file: Path, digest_type: str = "manager"):
         self.data_file = data_file
         self.output_file = output_file
+        self.digest_type = digest_type
     
     def generate_digest(self) -> bool:
         """Generate digest using Claude Code"""
@@ -24,8 +25,11 @@ class ClaudeAnalyzer:
             with open(self.data_file, 'r') as f:
                 data = json.load(f)
             
-            # Create the prompt with the JSON data embedded
-            prompt = self._create_manager_analysis_prompt(data)
+            # Create the prompt based on digest type
+            if self.digest_type == "engineer":
+                prompt = self._create_engineer_analysis_prompt(data)
+            else:
+                prompt = self._create_manager_analysis_prompt(data)
             full_prompt = f"{prompt}\n\nAnalyze this data:\n{json.dumps(data, indent=2)}"
             
             try:
@@ -43,7 +47,7 @@ class ClaudeAnalyzer:
                 if process.returncode == 0 and stdout.strip():
                     # Write Claude's output to the digest file
                     with open(self.output_file, 'a') as f:
-                        f.write(f"\n\n## 🧠 AI Insight\n{stdout.strip()}\n")
+                        f.write(f"\n\n## 🧠 AI Insight for {self.digest_type}\n{stdout.strip()}\n")
                     
                     logging.info("Claude analysis completed successfully")
                     return True
@@ -70,21 +74,38 @@ class ClaudeAnalyzer:
         Always include the PR numbers and links where relevant."""
         return prompt
 
+    def _create_engineer_analysis_prompt(self, data: Dict[Any, Any]) -> str:
+        prompt = f"""I am an a software engineer. Can you read my team's github activity in the data file and give me a prioritized list of what I should review?
+        Rank by impact and urgency.
+
+        For each action, provide:
+        - Specific PR numbers to review, with links to the PR
+        - Why this matters technically (not just process)
+        - Time estimate for providing this review
+        - Any blockers or dependencies"""
+        return prompt
+
 def main():
     """Standalone analyzer for testing"""
     import sys
-    if len(sys.argv) != 3:
-        print("Usage: python claude_analyzer.py <data_file> <output_file>")
+    if len(sys.argv) < 3 or len(sys.argv) > 4:
+        print("Usage: python claude_analyzer.py <data_file> <output_file> [digest_type]")
+        print("  digest_type: 'manager' (default) or 'engineer'")
         sys.exit(1)
     
     data_file = Path(sys.argv[1])
     output_file = Path(sys.argv[2])
+    digest_type = sys.argv[3] if len(sys.argv) == 4 else "manager"
     
-    analyzer = ClaudeAnalyzer(data_file, output_file)
+    if digest_type not in ["manager", "engineer"]:
+        print("Error: digest_type must be 'manager' or 'engineer'")
+        sys.exit(1)
+    
+    analyzer = ClaudeAnalyzer(data_file, output_file, digest_type)
     success = analyzer.generate_digest()
     
     if success:
-        print(f"Digest generated successfully: {output_file}")
+        print(f"{digest_type.title()} digest generated successfully: {output_file}")
     else:
         print("Failed to generate digest")
         sys.exit(1)

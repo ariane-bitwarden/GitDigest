@@ -94,20 +94,19 @@ def main():
             print(f"✅ Digest generated: {digest_file}")
             digest_generated = True
             
-            # If this is a manager digest, try to add a Claude analysis
-            if digest_type == "manager":
-                print("🤖 Adding Claude analysis...")
-                try:
-                    analyzer = ClaudeAnalyzer(data_file, digest_file)
-                    success = analyzer.generate_digest()
+            # Add Claude analysis for both digest types
+            print("🤖 Adding Claude analysis...")
+            try:
+                analyzer = ClaudeAnalyzer(data_file, digest_file, digest_type)
+                success = analyzer.generate_digest()
+                
+                if success:
+                    print("✅ Claude analysis added")
+                else:
+                    print("⚠️ Claude analysis failed, continuing without it")
                     
-                    if success:
-                        print("✅ Claude analysis added")
-                    else:
-                        print("⚠️ Claude analysis failed, continuing without it")
-                        
-                except Exception as e:
-                    print(f"⚠️ Claude analysis error: {e}")
+            except Exception as e:
+                print(f"⚠️ Claude analysis error: {e}")
         else:
             error_msg = result.stderr if result else "Process timed out"
             print(f"❌ Digest generation failed: {error_msg}")
