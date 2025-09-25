@@ -125,16 +125,18 @@ def create_manual_digest(data: Dict[Any, Any]) -> str:
         monitoring_items.append(f"**Large PRs requiring careful review ({len(large_prs)} total):**")
         for pr in sorted(large_prs, key=lambda x: x.get('files_changed', 0), reverse=True)[:5]:
             monitoring_items.append(f"  - [#{pr['number']}]({pr['url']}) `{pr['title']}` - {pr.get('files_changed', 0)} files changed")
-    
+
     # Team members with lots of open PRs (potential overload)
     author_counts = {}
     for pr in open_prs:
         author = pr.get('author')
         if author in team_members:
             author_counts[author] = author_counts.get(author, 0) + 1
-    
+
     overloaded_authors = [(author, count) for author, count in author_counts.items() if count >= 3]
     if overloaded_authors:
+        if monitoring_items:  # Add blank line if there are previous items
+            monitoring_items.append("")
         monitoring_items.append("**Team members with high PR load:**")
         for author, count in sorted(overloaded_authors, key=lambda x: x[1], reverse=True):
             monitoring_items.append(f"  - @{author}: {count} open PRs")
@@ -142,6 +144,8 @@ def create_manual_digest(data: Dict[Any, Any]) -> str:
     # PRs approaching the "old" threshold
     approaching_old = [pr for pr in open_prs if pr['days_since_activity'] == 2]  # 2 days, about to hit 3
     if approaching_old:
+        if monitoring_items:  # Add blank line if there are previous items
+            monitoring_items.append("")
         monitoring_items.append(f"**PRs approaching 3-day threshold ({len(approaching_old)} PRs):**")
         for pr in approaching_old[:3]:
             monitoring_items.append(f"  - [#{pr['number']}]({pr['url']}) `{pr['title']}` - @{pr['author']}")

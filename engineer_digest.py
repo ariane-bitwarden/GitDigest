@@ -106,16 +106,20 @@ def create_engineer_digest(data: Dict[Any, Any]) -> str:
         attention_items.append(f"**{len(large_prs)} Large PRs** (>15 files) - consider breaking down:")
         for pr in large_prs[:3]:
             attention_items.append(f"  - [#{pr['number']}]({pr['url']}) `{pr['title']}` - {pr['files_changed']} files")
-    
+
     if getting_stale:
+        if attention_items:  # Add blank line if there are previous items
+            attention_items.append("")
         attention_items.append(f"**{len(getting_stale)} PRs Getting Stale** (5-7 days old):")
         for pr in getting_stale[:3]:
             attention_items.append(f"  - [#{pr['number']}]({pr['url']}) `{pr['title']}` - @{pr['author']} ({pr['days_since_activity']} days)")
-    
+
     if my_prs_needing_attention:
+        if attention_items:  # Add blank line if there are previous items
+            attention_items.append("")
         attention_items.append("**PRs with Recent Team Activity** (may need follow-up):")
         for pr in my_prs_needing_attention[:3]:
-            digest += f"  - [#{pr['number']}]({pr['url']}) `{pr['title']}` - {pr.get('team_involvement', 'unknown')} involvement\n"
+            attention_items.append(f"  - [#{pr['number']}]({pr['url']}) `{pr['title']}` - {pr.get('team_involvement', 'unknown')} involvement")
     
     if attention_items:
         digest += "\n".join(attention_items) + "\n\n"
