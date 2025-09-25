@@ -172,36 +172,11 @@ python3 gitdigest.py
 
 ### Generate Digest from Existing Data:
 ```bash
-python3 claude_analyzer.py output/vault-team-data-2025-01-15.json output/custom-digest.md
-```
+# Manager analysis (default)
+python3 claude_analyzer.py output/vault-team-data-2025-01-15.json output/manager-analysis.md
 
-## 📈 Sample Output Structure
-
-```json
-{
-  "generated_at": "2025-09-04T09:00:00Z",
-  "team_members": ["Jingo88", "shane-melton", ...],
-  "repositories": ["bitwarden/server", ...],
-  "pull_requests": [
-    {
-      "repo": "bitwarden/server",
-      "number": 123,
-      "title": "Fix vault encryption bug",
-      "author": "Jingo88",
-      "status": "open",
-      "team_involvement": "author",
-      "days_since_activity": 1,
-      "files_changed": 5,
-      "comments": [...],
-      "reviews": [...]
-    }
-  ],
-  "summary_stats": {
-    "total_active_prs": 15,
-    "team_authored_prs": 8,
-    "stale_prs": 3
-  }
-}
+# Engineer analysis  
+python3 claude_analyzer.py output/vault-team-data-2025-01-15.json output/engineer-analysis.md engineer
 ```
 
 ## 🤝 Support
