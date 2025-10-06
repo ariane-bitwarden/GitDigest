@@ -77,7 +77,8 @@ def create_manual_digest(data: Dict[Any, Any]) -> str:
             }
     
     # Generate markdown with executive summary and manager priorities
-    digest = f"""# Vault Team Daily Digest - {date_str}
+    team_name = data.get('team_name', 'Team')
+    digest = f"""# {team_name} Daily Digest - {date_str}
 
 ## 📊 Executive Summary
 

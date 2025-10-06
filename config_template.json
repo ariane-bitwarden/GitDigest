@@ -1,7 +1,8 @@
 {
+  "team_name": "Your Team Name",
   "team_members": [
     "github_user1",
-    "github_user2", 
+    "github_user2",
     "github_user3",
     "github_user4"
   ],
@@ -19,8 +20,8 @@
   },
   "output": {
     "directory": "output",
-    "data_filename_template": "team-data-{date}.json",
-    "digest_filename_template": "team-digest-{date}.md"
+    "data_filename_template": "your-team-data-{date}.json",
+    "digest_filename_template": "your-team-digest-{date}.md"
   },
   "github": {
     "api_delay_seconds": 0.05,

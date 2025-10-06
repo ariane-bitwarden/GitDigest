@@ -62,9 +62,10 @@ def create_engineer_digest(data: Dict[Any, Any]) -> str:
     
     # Recently merged PRs (good to know what landed)
     merged_prs = [pr for pr in prs if pr['status'] == 'merged'][:10]  # Last 10
-    
+
     # Generate engineer-focused markdown
-    digest = f"""# Team Development Digest - {date_str}
+    team_name = data.get('team_name', 'Team')
+    digest = f"""# {team_name} Development Digest - {date_str}
 
 ## 🎯 At a Glance
 **{len(open_prs)} open PRs** | **{len(needs_review)} ready for review** | **{len(high_priority)} high priority** | **{len(merged_prs)} recently merged**
