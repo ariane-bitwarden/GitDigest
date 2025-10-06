@@ -26,10 +26,6 @@ def main():
     # Load configuration
     config = Config.from_file(config_file)
     
-    # Add template support for filename generation
-    config.data_filename_template = "vault-team-data-{date}.json"
-    config.digest_filename_template = "vault-team-digest-{date}.md"
-    
     if not config.github_token:
         print("Error: GITHUB_TOKEN environment variable not set")
         print("Please set your GitHub token: export GITHUB_TOKEN=your_token_here")

@@ -173,10 +173,10 @@ python3 gitdigest.py
 ### Generate Digest from Existing Data:
 ```bash
 # Manager analysis (default)
-python3 claude_analyzer.py output/vault-team-data-2025-01-15.json output/manager-analysis.md
+python3 claude_analyzer.py output/team-data-2025-01-15.json output/manager-analysis.md
 
-# Engineer analysis  
-python3 claude_analyzer.py output/vault-team-data-2025-01-15.json output/engineer-analysis.md engineer
+# Engineer analysis
+python3 claude_analyzer.py output/team-data-2025-01-15.json output/engineer-analysis.md engineer
 ```
 
 ## 🤝 Support

@@ -51,8 +51,13 @@ RESULT=$?
 
 if [ $RESULT -eq 0 ]; then
     # Success - check if files were created
-    DATA_FILE="$SCRIPT_DIR/output/vault-team-data-$DATE.json"
-    DIGEST_FILE="$SCRIPT_DIR/output/vault-team-digest-$DATE.md"
+    # Read filename templates from config.json
+    DATA_TEMPLATE=$(python3 -c "import json; data=json.load(open('$SCRIPT_DIR/config.json')); print(data.get('output', {}).get('data_filename_template', 'team-data-{date}.json'))" 2>/dev/null || echo "team-data-{date}.json")
+    DIGEST_TEMPLATE=$(python3 -c "import json; data=json.load(open('$SCRIPT_DIR/config.json')); print(data.get('output', {}).get('digest_filename_template', 'team-digest-{date}.md'))" 2>/dev/null || echo "team-digest-{date}.md")
+
+    # Replace {date} placeholder with actual date
+    DATA_FILE="$SCRIPT_DIR/output/${DATA_TEMPLATE//\{date\}/$DATE}"
+    DIGEST_FILE="$SCRIPT_DIR/output/${DIGEST_TEMPLATE//\{date\}/$DATE}"
     
     if [ -f "$DATA_FILE" ] && [ -f "$DIGEST_FILE" ]; then
         # Count PRs found

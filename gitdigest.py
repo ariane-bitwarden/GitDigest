@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 GitDigest - GitHub Activity Data Collection and Analysis Tool
-Collects PR data for Vault team members and generates daily summaries using Claude Code.
+Collects PR data for team members and generates daily summaries using Claude Code.
 """
 
 import os
@@ -32,6 +32,9 @@ class Config:
     api_delay: float = 0.1
     max_retries: int = 3
     per_page: int = 100
+    team_name: str = "Team"
+    data_filename_template: str = "team-data-{date}.json"
+    digest_filename_template: str = "team-digest-{date}.md"
     
     @classmethod
     def from_file(cls, config_file: Path = None):
@@ -78,7 +81,7 @@ class Config:
         github_config = config_data.get("github", {
             "api_delay_seconds": 0.1, "max_retries": 3, "per_page": 100
         })
-        
+
         return cls(
             team_members=config_data["team_members"],
             repositories=config_data["repositories"],
@@ -91,7 +94,10 @@ class Config:
             output_dir=Path(__file__).parent / output_config.get("directory", "output"),
             api_delay=github_config.get("api_delay_seconds", 0.1),
             max_retries=github_config.get("max_retries", 3),
-            per_page=github_config.get("per_page", 100)
+            per_page=github_config.get("per_page", 100),
+            team_name=config_data.get("team_name", "Team"),
+            data_filename_template=output_config.get("data_filename_template", "team-data-{date}.json"),
+            digest_filename_template=output_config.get("digest_filename_template", "team-digest-{date}.md")
         )
 
 
@@ -473,9 +479,10 @@ class GitDigestCollector:
                 continue
         
         summary_stats = self.generate_summary_stats(all_prs)
-        
+
         result = {
             "generated_at": datetime.now().isoformat(),
+            "team_name": self.config.team_name,
             "team_members": self.config.team_members,
             "repositories": self.config.repositories,
             "pull_requests": all_prs,
@@ -486,12 +493,12 @@ class GitDigestCollector:
         return result
 
 
-def run_claude_analysis(data_file: Path, output_file: Path):
+def run_claude_analysis(data_file: Path, output_file: Path, team_name: str = "the team"):
     """Run Claude Code analysis on the collected data"""
     logging.info("Running Claude Code analysis...")
-    
+
     prompt = f"""
-    Please analyze the GitHub PR data in {data_file} and generate a comprehensive daily digest for the Vault team.
+    Please analyze the GitHub PR data in {data_file} and generate a comprehensive daily digest for {team_name}.
     
     Create a well-formatted markdown report that includes:
     
@@ -538,16 +545,18 @@ def main():
         
         # Save data
         timestamp = datetime.now().strftime("%Y-%m-%d")
-        data_file = config.output_dir / f"vault-team-data-{timestamp}.json"
-        
+        data_filename = config.data_filename_template.format(date=timestamp)
+        digest_filename = config.digest_filename_template.format(date=timestamp)
+        data_file = config.output_dir / data_filename
+
         with open(data_file, 'w') as f:
             json.dump(data, f, indent=2)
-        
+
         print(f"Data collection complete. Saved to: {data_file}")
-        
+
         # Run Claude analysis
-        digest_file = config.output_dir / f"vault-team-digest-{timestamp}.md"
-        if run_claude_analysis(data_file, digest_file):
+        digest_file = config.output_dir / digest_filename
+        if run_claude_analysis(data_file, digest_file, config.team_name):
             print(f"Digest generated: {digest_file}")
         else:
             print("Failed to generate digest. You can manually analyze the JSON data.")
